@@ -1,8 +1,8 @@
-import hre from 'hardhat'
+import { ethers } from 'hardhat'
 
 
 async function main() {
-    const TokenContract = await hre.ethers.getContractFactory("Token");
+    const TokenContract = await ethers.getContractFactory("Token");
 
     const token = await TokenContract.deploy();
     const address = await token.getAddress();
