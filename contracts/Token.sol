@@ -1,7 +1,7 @@
-// SPDX-License-Identifier: MIT 
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import 'hardhat/console.sol';
+import "hardhat/console.sol";
 
 contract Token {
     string public name;
@@ -11,10 +11,30 @@ contract Token {
 
     mapping(address => uint256) public balanceOf;
 
-    constructor(string memory _name, string memory _symbol, uint256 _totalSupply) {
+    event Transfer(address indexed _from, address indexed _to, uint256 _value);
+
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        uint256 _totalSupply
+    ) {
         name = _name;
         symbol = _symbol;
         totalSupply = _totalSupply * (10 ** decimals);
         balanceOf[msg.sender] = totalSupply;
+    }
+
+    function transfer(
+        address _to,
+        uint256 _value
+    ) public returns (bool success) {
+        require(balanceOf[msg.sender] >= _value, 'Insufficient Balance');
+        require(_to != address(0), 'Invalid Recipent');
+
+        balanceOf[msg.sender] -= _value;
+        balanceOf[_to] += _value;
+
+        emit Transfer(msg.sender, _to, _value);
+        return true;
     }
 }
