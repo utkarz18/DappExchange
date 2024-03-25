@@ -53,7 +53,7 @@ describe('Exchange', () => {
             beforeEach(async () => {
                 let transaction = await token1.connect(seller).approve(exchange.getAddress(), amount);
                 await transaction.wait();
-    
+
                 transaction = await exchange.connect(seller).depositToken(token1.getAddress(), amount);
                 result = await transaction.wait();
             });
@@ -74,5 +74,67 @@ describe('Exchange', () => {
                 await expect(exchange.connect(seller).depositToken(token1.getAddress(), amount)).to.be.reverted;
             });
         });
+    });
+
+    describe('Withdrawing Tokens', () => {
+        let amount = tokens(100);
+        let result: any;
+
+        describe('Success', () => {
+            beforeEach(async () => {
+                let transaction = await token1.connect(seller).approve(exchange.getAddress(), amount);
+                await transaction.wait();
+
+                transaction = await exchange.connect(seller).depositToken(token1.getAddress(), amount);
+                await transaction.wait();
+
+                transaction = await exchange.connect(seller).withdrawlToken(token1.getAddress(), amount);
+                result = await transaction.wait();
+            });
+
+            it('withdraws the tokens from exchange', async () => {
+                expect(await exchange.balanceOf(token1.getAddress(), seller.address)).to.be.equal(0);
+                expect(await token1.balanceOf(exchange.getAddress())).to.be.equal(0);
+                expect(await token1.balanceOf(seller.address)).to.be.equal(amount);
+            })
+
+            it('emits an Deposit event', async () => {
+                expect(await result?.logs[1].fragment.name).to.be.equal('Withdraw');
+            })
+        });
+
+        describe('Failure', () => {
+            it('fails for insufficient balances', async () => {
+                await expect(exchange.connect(seller).withdrawlToken(token1.getAddress(), amount)).to.be.reverted;
+            });
+        });
+    });
+
+    describe('Checking balances', () => {
+        let amount = tokens(100);
+        let transaction: ContractTransactionResponse;
+
+        beforeEach(async () => {
+            transaction = await token1.connect(seller).approve(exchange.getAddress(), amount);
+            await transaction.wait();
+
+            transaction = await exchange.connect(seller).depositToken(token1.getAddress(), amount);
+            await transaction.wait();
+        });
+
+        it('verifies balance after deposit', async () => {
+            expect(await exchange.balanceOf(token1.getAddress(), seller.address)).to.be.equal(amount);
+            expect(await token1.balanceOf(exchange.getAddress())).to.be.equal(amount);
+            expect(await token1.balanceOf(seller.address)).to.be.equal(0);
+        })
+
+        it('verifies balnce after withdraw', async () => {
+            transaction = await exchange.connect(seller).withdrawlToken(token1.getAddress(), amount);
+            await transaction.wait();
+
+            expect(await exchange.balanceOf(token1.getAddress(), seller.address)).to.be.equal(0);
+            expect(await token1.balanceOf(exchange.getAddress())).to.be.equal(0);
+            expect(await token1.balanceOf(seller.address)).to.be.equal(amount);
+        })
     });
 });
