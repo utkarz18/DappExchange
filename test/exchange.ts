@@ -15,8 +15,8 @@ describe('Exchange', () => {
     let user2: HardhatEthersSigner;
 
     let exchange: Exchange & { deploymentTransaction(): ContractTransactionResponse; };
-    let token1: Token & { deploymentTransaction(): ContractTransactionResponse; };
-    let token2: Token & { deploymentTransaction(): ContractTransactionResponse; };
+    let METH: Token & { deploymentTransaction(): ContractTransactionResponse; };
+    let MUSDT: Token & { deploymentTransaction(): ContractTransactionResponse; };
 
     const feePercent = 10;
 
@@ -31,10 +31,10 @@ describe('Exchange', () => {
         exchange = await exchangeContract.deploy(feeAccount, feePercent);
 
         const tokenConract = await ethers.getContractFactory('Token');
-        token1 = await tokenConract.deploy('Mock Ether', 'METH', 1000000);
-        token2 = await tokenConract.deploy('Mock USDT', 'MUSDT', 1000000);
+        METH = await tokenConract.deploy('Mock Ether', 'METH', 1000000);
+        MUSDT = await tokenConract.deploy('Mock USDT', 'MUSDT', 1000000);
 
-        const transaction = await token1.connect(deployer).transfer(user1.address, tokens(100));
+        const transaction = await METH.connect(deployer).transfer(user1.address, tokens(100));
         await transaction.wait();
     });
 
@@ -55,17 +55,17 @@ describe('Exchange', () => {
 
         describe('Success', () => {
             beforeEach(async () => {
-                let transaction = await token1.connect(user1).approve(exchange.getAddress(), amount);
+                let transaction = await METH.connect(user1).approve(exchange.getAddress(), amount);
                 await transaction.wait();
 
-                transaction = await exchange.connect(user1).depositToken(token1.getAddress(), amount);
+                transaction = await exchange.connect(user1).depositToken(METH.getAddress(), amount);
                 result = await transaction.wait();
             });
 
             it('tracks the token deposit to exchange', async () => {
-                expect(await exchange.balanceOf(token1.getAddress(), user1.address)).to.be.equal(amount);
-                expect(await token1.balanceOf(exchange.getAddress())).to.be.equal(amount);
-                expect(await token1.balanceOf(user1.address)).to.be.equal(0);
+                expect(await exchange.balanceOf(METH.getAddress(), user1.address)).to.be.equal(amount);
+                expect(await METH.balanceOf(exchange.getAddress())).to.be.equal(amount);
+                expect(await METH.balanceOf(user1.address)).to.be.equal(0);
             })
 
             it('emits an Deposit event', async () => {
@@ -75,7 +75,7 @@ describe('Exchange', () => {
 
         describe('Failure', () => {
             it('fails when no tokens are approved', async () => {
-                await expect(exchange.connect(user1).depositToken(token1.getAddress(), amount)).to.be.reverted;
+                await expect(exchange.connect(user1).depositToken(METH.getAddress(), amount)).to.be.reverted;
             });
         });
     });
@@ -86,20 +86,20 @@ describe('Exchange', () => {
 
         describe('Success', () => {
             beforeEach(async () => {
-                let transaction = await token1.connect(user1).approve(exchange.getAddress(), amount);
+                let transaction = await METH.connect(user1).approve(exchange.getAddress(), amount);
                 await transaction.wait();
 
-                transaction = await exchange.connect(user1).depositToken(token1.getAddress(), amount);
+                transaction = await exchange.connect(user1).depositToken(METH.getAddress(), amount);
                 await transaction.wait();
 
-                transaction = await exchange.connect(user1).withdrawlToken(token1.getAddress(), amount);
+                transaction = await exchange.connect(user1).withdrawlToken(METH.getAddress(), amount);
                 result = await transaction.wait();
             });
 
             it('withdraws the tokens from exchange', async () => {
-                expect(await exchange.balanceOf(token1.getAddress(), user1.address)).to.be.equal(0);
-                expect(await token1.balanceOf(exchange.getAddress())).to.be.equal(0);
-                expect(await token1.balanceOf(user1.address)).to.be.equal(amount);
+                expect(await exchange.balanceOf(METH.getAddress(), user1.address)).to.be.equal(0);
+                expect(await METH.balanceOf(exchange.getAddress())).to.be.equal(0);
+                expect(await METH.balanceOf(user1.address)).to.be.equal(amount);
             })
 
             it('emits an Deposit event', async () => {
@@ -109,7 +109,7 @@ describe('Exchange', () => {
 
         describe('Failure', () => {
             it('fails for insufficient balances', async () => {
-                await expect(exchange.connect(user1).withdrawlToken(token1.getAddress(), amount)).to.be.reverted;
+                await expect(exchange.connect(user1).withdrawlToken(METH.getAddress(), amount)).to.be.reverted;
             });
         });
     });
@@ -119,26 +119,26 @@ describe('Exchange', () => {
         let transaction: ContractTransactionResponse;
 
         beforeEach(async () => {
-            transaction = await token1.connect(user1).approve(exchange.getAddress(), amount);
+            transaction = await METH.connect(user1).approve(exchange.getAddress(), amount);
             await transaction.wait();
 
-            transaction = await exchange.connect(user1).depositToken(token1.getAddress(), amount);
+            transaction = await exchange.connect(user1).depositToken(METH.getAddress(), amount);
             await transaction.wait();
         });
 
         it('verifies balance after deposit', async () => {
-            expect(await exchange.balanceOf(token1.getAddress(), user1.address)).to.be.equal(amount);
-            expect(await token1.balanceOf(exchange.getAddress())).to.be.equal(amount);
-            expect(await token1.balanceOf(user1.address)).to.be.equal(0);
+            expect(await exchange.balanceOf(METH.getAddress(), user1.address)).to.be.equal(amount);
+            expect(await METH.balanceOf(exchange.getAddress())).to.be.equal(amount);
+            expect(await METH.balanceOf(user1.address)).to.be.equal(0);
         })
 
         it('verifies balnce after withdraw', async () => {
-            transaction = await exchange.connect(user1).withdrawlToken(token1.getAddress(), amount);
+            transaction = await exchange.connect(user1).withdrawlToken(METH.getAddress(), amount);
             await transaction.wait();
 
-            expect(await exchange.balanceOf(token1.getAddress(), user1.address)).to.be.equal(0);
-            expect(await token1.balanceOf(exchange.getAddress())).to.be.equal(0);
-            expect(await token1.balanceOf(user1.address)).to.be.equal(amount);
+            expect(await exchange.balanceOf(METH.getAddress(), user1.address)).to.be.equal(0);
+            expect(await METH.balanceOf(exchange.getAddress())).to.be.equal(0);
+            expect(await METH.balanceOf(user1.address)).to.be.equal(amount);
         })
     });
 
@@ -148,13 +148,13 @@ describe('Exchange', () => {
 
         describe('Success', () => {
             beforeEach(async () => {
-                let transaction = await token1.connect(user1).approve(exchange.getAddress(), amount);
+                let transaction = await METH.connect(user1).approve(exchange.getAddress(), amount);
                 await transaction.wait();
 
-                transaction = await exchange.connect(user1).depositToken(token1.getAddress(), amount);
+                transaction = await exchange.connect(user1).depositToken(METH.getAddress(), amount);
                 await transaction.wait();
 
-                transaction = await exchange.connect(user1).makeOrder(token2.getAddress(), tokens(1), token1.getAddress(), tokens(1));
+                transaction = await exchange.connect(user1).makeOrder(MUSDT.getAddress(), tokens(1), METH.getAddress(), tokens(1));
                 result = await transaction.wait();
             });
 
@@ -170,7 +170,7 @@ describe('Exchange', () => {
 
         describe('Failure', () => {
             it('fails for insufficient balances', async () => {
-                await expect(exchange.connect(user1).makeOrder(token2.getAddress(), tokens(1), token1.getAddress(), tokens(1))).to.be.reverted;
+                await expect(exchange.connect(user1).makeOrder(MUSDT.getAddress(), tokens(1), METH.getAddress(), tokens(1))).to.be.reverted;
             });
         });
     });
@@ -181,13 +181,19 @@ describe('Exchange', () => {
         let result: any;
 
         beforeEach(async () => {
-            transaction = await token1.connect(user1).approve(exchange.getAddress(), amount);
+            transaction = await METH.connect(user1).approve(exchange.getAddress(), amount);
+            await transaction.wait();
+            transaction = await exchange.connect(user1).depositToken(METH.getAddress(), amount);
             await transaction.wait();
 
-            transaction = await exchange.connect(user1).depositToken(token1.getAddress(), amount);
+            transaction = await MUSDT.connect(deployer).transfer(user2.address, tokens(100));
+            await transaction.wait();
+            transaction = await MUSDT.connect(user2).approve(exchange.getAddress(), tokens(2));
+            await transaction.wait();
+            transaction = await exchange.connect(user2).depositToken(MUSDT.getAddress(), tokens(2));
             await transaction.wait();
 
-            transaction = await exchange.connect(user1).makeOrder(token2.getAddress(), amount, token1.getAddress(), amount);
+            transaction = await exchange.connect(user1).makeOrder(MUSDT.getAddress(), amount, METH.getAddress(), amount);
             await transaction.wait();
         });
 
@@ -198,7 +204,7 @@ describe('Exchange', () => {
                     transaction = await exchange.connect(user1).cancelOrder(1);
                     result = await transaction.wait();
                 });
-                it('updates canceled orders', async () => {
+                it('updates cancelled orders', async () => {
                     expect(await exchange.orderCancelled(1)).to.be.equal(true);
                 })
 
@@ -218,6 +224,49 @@ describe('Exchange', () => {
             });
         });
 
+        describe('Filling orders', () => {
+            describe('Success', () => {
+                beforeEach(async () => {
+                    transaction = await exchange.connect(user2).fillOrder(1);
+                    result = await transaction.wait();
+                });
 
+                it('Executes the trade and charge fees', async () => {
+                    expect(await exchange.balanceOf(MUSDT.getAddress(), user1.address)).to.be.equal(amount);
+                    expect(await exchange.balanceOf(METH.getAddress(), user1.address)).to.be.equal(0);
+
+                    expect(await exchange.balanceOf(MUSDT.getAddress(), user2.address)).to.be.equal(tokens(0.9));
+                    expect(await exchange.balanceOf(METH.getAddress(), user2.address)).to.be.equal(amount);
+
+                    expect(await exchange.balanceOf(MUSDT.getAddress(), feeAccount.address)).to.be.equal(tokens(0.1));
+                })
+
+                it('emits an Trade event', async () => {
+                    expect(await result?.logs[0].fragment.name).to.be.equal('Trade');
+                })
+
+                it('updates filled orders', async () => {
+                    expect(await exchange.orderFilled(1)).to.be.equal(true);
+                })
+            });
+
+            describe('Failure', () => {
+                it('Rejects invalid order ids', async () => {
+                    await expect(exchange.connect(user2).fillOrder(2)).to.be.reverted;
+                });
+
+                it('Rejects already filled orders', async () => {
+                    transaction = await exchange.connect(user2).fillOrder(1);
+                    result = await transaction.wait();
+                    await expect(exchange.connect(user2).fillOrder(1)).to.be.reverted;
+                });
+
+                it('Rejects already cancelled orders', async () => {
+                    transaction = await exchange.connect(user1).cancelOrder(1);
+                    result = await transaction.wait();
+                    await expect(exchange.connect(user2).fillOrder(1)).to.be.reverted;
+                });
+            });
+        });
     });
 });
