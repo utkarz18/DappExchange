@@ -12,6 +12,7 @@ describe('Exchange', () => {
     let deployer: HardhatEthersSigner;
     let feeAccount: HardhatEthersSigner;
     let user1: HardhatEthersSigner;
+    let user2: HardhatEthersSigner;
 
     let exchange: Exchange & { deploymentTransaction(): ContractTransactionResponse; };
     let token1: Token & { deploymentTransaction(): ContractTransactionResponse; };
@@ -24,6 +25,7 @@ describe('Exchange', () => {
         deployer = accounts[0];
         feeAccount = accounts[1];
         user1 = accounts[2];
+        user2 = accounts[3];
 
         const exchangeContract = await ethers.getContractFactory('Exchange');
         exchange = await exchangeContract.deploy(feeAccount, feePercent);
@@ -171,5 +173,51 @@ describe('Exchange', () => {
                 await expect(exchange.connect(user1).makeOrder(token2.getAddress(), tokens(1), token1.getAddress(), tokens(1))).to.be.reverted;
             });
         });
+    });
+
+    describe('Order actions', () => {
+        let amount = tokens(1);
+        let transaction;
+        let result: any;
+
+        beforeEach(async () => {
+            transaction = await token1.connect(user1).approve(exchange.getAddress(), amount);
+            await transaction.wait();
+
+            transaction = await exchange.connect(user1).depositToken(token1.getAddress(), amount);
+            await transaction.wait();
+
+            transaction = await exchange.connect(user1).makeOrder(token2.getAddress(), amount, token1.getAddress(), amount);
+            await transaction.wait();
+        });
+
+
+        describe('Cancelling orders', () => {
+            describe('Success', () => {
+                beforeEach(async () => {
+                    transaction = await exchange.connect(user1).cancelOrder(1);
+                    result = await transaction.wait();
+                });
+                it('updates canceled orders', async () => {
+                    expect(await exchange.orderCancelled(1)).to.be.equal(true);
+                })
+
+                it('emits an Cancel event', async () => {
+                    expect(await result?.logs[0].fragment.name).to.be.equal('Cancel');
+                })
+            });
+
+            describe('Failure', () => {
+                it('Rejects invalid order ids', async () => {
+                    await expect(exchange.connect(user1).cancelOrder(2)).to.be.reverted;
+                });
+
+                it('Rejects unauthorized cancellations', async () => {
+                    await expect(exchange.connect(user2).cancelOrder(1)).to.be.reverted;
+                });
+            });
+        });
+
+
     });
 });
