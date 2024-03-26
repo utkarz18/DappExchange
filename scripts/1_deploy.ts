@@ -1,12 +1,23 @@
 import { ethers } from 'hardhat'
 
+const main = async () => {
+    const accounts = await ethers.getSigners();
+    const feeAccount = accounts[5];
 
-async function main() {
     const TokenContract = await ethers.getContractFactory("Token");
+    const ExchangeContract = await ethers.getContractFactory('Exchange');
 
-    const token = await TokenContract.deploy();
-    const address = await token.getAddress();
-    console.log(`Token deployed to: ${address}`);
+    const exchange = await ExchangeContract.deploy(feeAccount, 10);
+    console.log(`Exchange deployed to: ${await exchange.getAddress()}`);
+
+    const METH = await TokenContract.deploy('Mock Ether', 'METH', 1000000);
+    console.log(`METH Token deployed to: ${await METH.getAddress()}`);
+
+    const MDAI = await TokenContract.deploy('Mock DAI', 'MDAI', 1000000);
+    console.log(`MDAI Token deployed to: ${await MDAI.getAddress()}`);
+
+    const MUSDT = await TokenContract.deploy('Mock USDT', 'MUSDT', 1000000);
+    console.log(`MUSDT Token deployed to: ${await MUSDT.getAddress()}`);
 }
 
 main()
