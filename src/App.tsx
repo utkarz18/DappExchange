@@ -1,31 +1,25 @@
-import { useEffect } from 'react'
-import { Contract, ethers } from 'ethers';
-import './App.css'
-import config from './config.json'
-import TOKEN_ABI from './token_abi.json'
+import { useEffect } from 'react';
+import config from './config.json';
+import { connectWallet, loadNetwork, loadProvider, loadToken, setStore } from './lib';
+import useExchangeTokenStore from './store';
 
 
 const App = () => {
+  const store = useExchangeTokenStore();
+  setStore(store);
 
   const loadBlockChainData = async () => {
-    if (window.ethereum == null) {
-      alert("MetaMask not installed; using read-only defaults")
-      return;
-    }
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
-    console.log(accounts[0]);
-
-    const provider = new ethers.BrowserProvider(window.ethereum)
-    const { chainId } = await provider.getNetwork();
-    console.log(chainId);
+    await connectWallet();
+    const provider = loadProvider();
+    const chainId = await loadNetwork(provider);
 
     const addressOf = (config as any)[chainId.toString()];
-    const MUSDT = new Contract(addressOf.MUSDT, TOKEN_ABI, provider);
-    console.log(`Token fetched:\nSymbol: ${await MUSDT.symbol()} \nAddress: ${await MUSDT.getAddress()}`)
+    await loadToken(provider, addressOf.MUSDT);
   }
+
   useEffect(() => {
     loadBlockChainData();
-  })
+  },[])
 
   return (
     <div>
