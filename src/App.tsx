@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import config from './config.json';
-import { connectWallet, loadNetwork, loadProvider, loadToken, setStore } from './lib';
+import { connectWallet, loadExchange, loadNetwork, loadProvider, loadTokenA, loadTokenB, setStore } from './lib';
 import useExchangeTokenStore from './store';
 
 
@@ -9,17 +9,20 @@ const App = () => {
   setStore(store);
 
   const loadBlockChainData = async () => {
-    await connectWallet();
     const provider = loadProvider();
     const chainId = await loadNetwork(provider);
+    await connectWallet(provider);
 
     const addressOf = (config as any)[chainId.toString()];
-    await loadToken(provider, addressOf.MUSDT);
+    await loadTokenA(provider, addressOf.MUSDT);
+    await loadTokenB(provider, addressOf.METH);
+
+    await loadExchange(provider, addressOf.exchange);
   }
 
   useEffect(() => {
     loadBlockChainData();
-  },[])
+  }, [])
 
   return (
     <div>

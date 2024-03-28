@@ -2,9 +2,11 @@ import { Contract, ethers } from "ethers";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
-interface Token {
+interface ExchangeProps {
     loaded: boolean;
     contract: Contract;
+}
+interface TokenProps extends ExchangeProps {
     symbol: string;
 }
 
@@ -12,18 +14,21 @@ interface ExchangeTokenState {
     provider?: ethers.BrowserProvider;
     chainId?: string;
     account?: string;
-    token?: Token;
+    balance?: string;
+    tokenA?: TokenProps;
+    tokenB?: TokenProps;
+    exchange?: ExchangeProps;
 }
 
 export interface ExchangeTokenStore {
     state: ExchangeTokenState;
     setProvider: (provider: ethers.BrowserProvider) => void;
     setChainId: (chainId: string) => void;
-    setAccount: (chainId: string) => void;
-    setToken: (token: Token) => void;
-    setTokenA: (tokenA: object) => void;
-    setTokenB: (tokenB: object) => void;
-    setOpenToken: (openToken: object) => void;
+    setAccount: (account: string) => void;
+    setBalance: (balance: string) => void;
+    setTokenA: (tokenA: TokenProps) => void;
+    setTokenB: (tokenB: TokenProps) => void;
+    setExchange: (exchange: ExchangeProps) => void;
     setSlippageAmount: (slippageAmount: number) => void;
     setDeadlineMinutes: (deadlineMinutes: number) => void;
     setOutputAmount: (outputAmount: number) => void;
@@ -40,14 +45,14 @@ const useExchangeTokenStore = create<ExchangeTokenStore>()(
             set((store) => ({ state: { ...store.state, chainId } })),
         setAccount: (account) =>
             set((store) => ({ state: { ...store.state, account } })),
-        setToken: (token) =>
-            set((store) => ({ state: { ...store.state, token } })),
+        setBalance: (balance) =>
+            set((store) => ({ state: { ...store.state, balance } })),
         setTokenA: (tokenA) =>
             set((store) => ({ state: { ...store.state, tokenA } })),
         setTokenB: (tokenB) =>
             set((store) => ({ state: { ...store.state, tokenB } })),
-        setOpenToken: (openToken) =>
-            set((store) => ({ state: { ...store.state, openToken } })),
+        setExchange: (exchange) =>
+            set((store) => ({ state: { ...store.state, exchange } })),
         setSlippageAmount: (slippageAmount) =>
             set((store) => ({ state: { ...store.state, slippageAmount } })),
         setDeadlineMinutes: (deadlineMinutes) =>
