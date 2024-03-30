@@ -1,4 +1,4 @@
-import { Contract, ethers } from "ethers";
+import { Contract } from "ethers";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
@@ -11,7 +11,6 @@ interface TokenProps extends ExchangeProps {
 }
 
 interface ExchangeTokenState {
-    provider?: ethers.BrowserProvider;
     chainId?: string;
     account?: string;
     balance?: string;
@@ -22,7 +21,6 @@ interface ExchangeTokenState {
 
 export interface ExchangeTokenStore {
     state: ExchangeTokenState;
-    setProvider: (provider: ethers.BrowserProvider) => void;
     setChainId: (chainId: string) => void;
     setAccount: (account: string) => void;
     setBalance: (balance: string) => void;
@@ -39,8 +37,6 @@ export interface ExchangeTokenStore {
 const useExchangeTokenStore = create<ExchangeTokenStore>()(
     devtools((set) => ({
         state: {},
-        setProvider: (provider) =>
-            set((store) => ({ state: { ...store.state, provider } })),
         setChainId: (chainId) =>
             set((store) => ({ state: { ...store.state, chainId } })),
         setAccount: (account) =>
