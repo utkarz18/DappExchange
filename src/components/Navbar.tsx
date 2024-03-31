@@ -9,7 +9,7 @@ const Navbar = () => {
     const state = useExchangeTokenStore(s => s.state);
     const account = state.account;
     const chainId = state.chainId;
-    const balance = state.balance;
+    const balance = state.accountBalance;
 
     const config = cfg as any;
     const selectedNetwork = chainId ? config[chainId] : null;

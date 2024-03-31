@@ -25,7 +25,7 @@ export const connectWallet = async (provider?: ethers.BrowserProvider) => {
 
     provider = provider || loadProvider();
     const balance = await provider.getBalance(account);
-    store.setBalance(Number(ethers.formatEther(balance)).toFixed(4));
+    store.setAccountBalance(Number(ethers.formatEther(balance)).toFixed(4));
 }
 
 export const loadNetwork = async (provider: ethers.BrowserProvider) => {
@@ -47,15 +47,15 @@ const loadToken = async (provider: ethers.BrowserProvider, address: string) => {
     return tokenContract;
 }
 
-export const loadTokenA = async (provider: ethers.BrowserProvider, address: string) => {
+export const loadToken1 = async (provider: ethers.BrowserProvider, address: string) => {
     const tokenContract = await loadToken(provider, address);
-    store.setTokenA({ loaded: true, contract: tokenContract, symbol: await tokenContract.symbol() });
+    store.setToken1({ loaded: true, contract: tokenContract, symbol: await tokenContract.symbol() });
     return tokenContract;
 }
 
-export const loadTokenB = async (provider: ethers.BrowserProvider, address: string) => {
+export const loadToken2 = async (provider: ethers.BrowserProvider, address: string) => {
     const tokenContract = await loadToken(provider, address);
-    store.setTokenB({ loaded: true, contract: tokenContract, symbol: await tokenContract.symbol() });
+    store.setToken2({ loaded: true, contract: tokenContract, symbol: await tokenContract.symbol() });
     return tokenContract;
 }
 
@@ -65,8 +65,48 @@ export const loadExchange = async (provider: ethers.BrowserProvider, address: st
     return exchangeContract;
 }
 
-export const switchMarket = async(tokenAddresses: string[]) => {
-    const provider = loadProvider();
-    await loadTokenA(provider, tokenAddresses[0]);
-    await loadTokenB(provider, tokenAddresses[1]);
+export const loadBalances = async (
+    exchangeContract: Contract,
+    token1Contract: Contract,
+    token2Contract: Contract,
+    account: string
+) => {
+    const exchangeToken1Balance = ethers.formatUnits(await exchangeContract.balanceOf(await token1Contract.getAddress(), account), 18);
+    const exchangeToken2Balance = ethers.formatUnits(await exchangeContract.balanceOf(await token2Contract.getAddress(), account), 18);
+    const token1Balance = ethers.formatUnits(await token1Contract.balanceOf(account), 18);
+    const token2Balance = ethers.formatUnits(await token2Contract.balanceOf(account), 18);
+    store.setTokenBalances({ exchangeToken1Balance, exchangeToken2Balance, token1Balance, token2Balance });
 }
+
+export const switchMarket = async (tokenAddresses: string[]) => {
+    const provider = loadProvider();
+    await loadToken1(provider, tokenAddresses[0]);
+    await loadToken2(provider, tokenAddresses[1]);
+}
+
+export const depositToExchange = async (exchangeContract: any, tokenContract: any, amount: string) => {
+    try {
+        const amountToDeposit = ethers.parseUnits(amount, 18);
+        const provider = loadProvider();
+        const signer = await provider.getSigner();
+        let transaction = await tokenContract.connect(signer).approve(await exchangeContract.getAddress(), amountToDeposit);
+        await transaction.wait();
+        transaction = await exchangeContract.connect(signer).depositToken(await tokenContract.getAddress(), amountToDeposit);
+        await transaction.wait();
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export const withdrawFromExchange = async (exchangeContract: any, tokenContract: any, amount: string) => {
+    try {
+        const amountToDeposit = ethers.parseUnits(amount, 18);
+        const provider = loadProvider();
+        const signer = await provider.getSigner();
+        const transaction = await exchangeContract.connect(signer).withdrawlToken(await tokenContract.getAddress(), amountToDeposit);
+        await transaction.wait();
+    } catch (error) {
+        console.log(error);
+    }
+}
+
