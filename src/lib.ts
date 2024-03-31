@@ -84,7 +84,10 @@ export const switchMarket = async (tokenAddresses: string[]) => {
     await loadToken2(provider, tokenAddresses[1]);
 }
 
-export const depositToExchange = async (exchangeContract: any, tokenContract: any, amount: string) => {
+export const depositToExchange = async (
+    exchangeContract: any,
+    tokenContract: any,
+    amount: string) => {
     try {
         const amountToDeposit = ethers.parseUnits(amount, 18);
         const provider = loadProvider();
@@ -98,7 +101,10 @@ export const depositToExchange = async (exchangeContract: any, tokenContract: an
     }
 }
 
-export const withdrawFromExchange = async (exchangeContract: any, tokenContract: any, amount: string) => {
+export const withdrawFromExchange = async (
+    exchangeContract: any,
+    tokenContract: any,
+    amount: string) => {
     try {
         const amountToDeposit = ethers.parseUnits(amount, 18);
         const provider = loadProvider();
@@ -110,3 +116,23 @@ export const withdrawFromExchange = async (exchangeContract: any, tokenContract:
     }
 }
 
+export const makeOrder = async (
+    exchangeContract: any,
+    tokenGetContract: any,
+    tokenGiveContract: any,
+    amount: string,
+    price: string,
+    isBuy: boolean) => {
+    try {
+        const amountGet = isBuy ? ethers.parseUnits(amount, 18) : ethers.parseUnits((+amount * +price).toString(), 18);
+        const amountGive = isBuy ? ethers.parseUnits((+amount * +price).toString(), 18) : ethers.parseUnits(amount, 18);
+        const provider = loadProvider();
+        const signer = await provider.getSigner();
+        const transaction = await exchangeContract.connect(signer).makeOrder(
+            await tokenGetContract.getAddress(), amountGet,
+            await tokenGiveContract.getAddress(), amountGive);
+        await transaction.wait();
+    } catch (error) {
+        console.log(error);
+    }
+}

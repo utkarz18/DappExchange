@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import config from './config.json';
 import { connectWallet, loadExchange, loadNetwork, loadProvider, loadToken1, loadToken2, setStore } from './lib';
 import useExchangeTokenStore from './store';
+import Order from './components/Order';
 
 
 const App = () => {
@@ -38,6 +39,11 @@ const App = () => {
       const message = `${user} withdraw ${amount} ${token} from exchange`
       store.setWithdrawSucessMessage(message);
     })
+
+    exchangeContract.on('Order', (orderId) => {
+      const message = `Order Id : ${orderId}`
+      console.log(message);
+    })
   }
 
   useEffect(() => {
@@ -51,8 +57,7 @@ const App = () => {
         <section className='exchange__section--left grid'>
           <Markets />
           <Balance />
-
-          {/* Order */}
+          <Order />
 
         </section>
         <section className='exchange__section--right grid'>
