@@ -2,10 +2,11 @@ import { useEffect } from 'react';
 import Balance from './components/Balance';
 import Markets from './components/Markets';
 import Navbar from './components/Navbar';
-import config from './config.json';
-import { connectWallet, loadExchange, loadNetwork, loadProvider, loadToken1, loadToken2, setStore } from './lib';
-import useExchangeTokenStore from './store';
 import Order from './components/Order';
+import Orderbook from './components/Orderbook';
+import config from './config.json';
+import { connectWallet, loadAllOrders, loadExchange, loadNetwork, loadProvider, loadToken1, loadToken2, setStore } from './lib/lib';
+import useExchangeTokenStore from './lib/store';
 
 
 const App = () => {
@@ -21,6 +22,8 @@ const App = () => {
     await loadToken2(provider, addressOf.METH);
 
     const exchangeContract = await loadExchange(provider, addressOf.exchange);
+
+    await loadAllOrders(exchangeContract, provider);
 
     window.ethereum.on('accountsChanged', async () => {
       await connectWallet(provider)
@@ -40,10 +43,11 @@ const App = () => {
       store.setWithdrawSucessMessage(message);
     })
 
-    exchangeContract.on('Order', (orderId) => {
+    exchangeContract.on('Trade', (orderId) => {
       const message = `Order Id : ${orderId}`
       console.log(message);
     })
+
   }
 
   useEffect(() => {
@@ -68,7 +72,7 @@ const App = () => {
 
           {/* Trades */}
 
-          {/* OrderBook */}
+          <Orderbook />
 
         </section>
       </main>

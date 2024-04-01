@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import dapp from '../assets/dapp.svg';
 import eth from '../assets/eth.svg';
-import { depositToExchange, loadBalances, withdrawFromExchange } from '../lib';
-import useExchangeTokenStore from '../store';
+import { depositToExchange, loadBalances, withdrawFromExchange } from '../lib/lib';
+import useExchangeTokenStore from '../lib/store';
 
 const Balance = () => {
     const state = useExchangeTokenStore(s => s.state);
@@ -19,7 +19,6 @@ const Balance = () => {
     const token2ref = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        console.log('loadBalances');
         (async () => {
             if (exchange && token1 && token2 && account) {
                 await loadBalances(exchange.contract, token1.contract, token2.contract, account)

@@ -1,39 +1,6 @@
-import { Contract } from "ethers";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-
-interface ExchangeProps {
-    loaded: boolean;
-    contract: Contract;
-}
-interface TokenProps extends ExchangeProps {
-    symbol: string;
-}
-
-interface TokenBalanceProps {
-    balance: string;
-    exchangeBalance: string;
-}
-
-interface AllBalancesProps {
-    exchangeToken1Balance: string;
-    exchangeToken2Balance: string;
-    token1Balance: string;
-    token2Balance: string;
-}
-
-interface ExchangeTokenState {
-    chainId?: string;
-    account?: string;
-    accountBalance?: string;
-    token1?: TokenProps;
-    token2?: TokenProps;
-    exchange?: ExchangeProps;
-    token1Balance?: TokenBalanceProps;
-    token2Balance?: TokenBalanceProps;
-    depositSucessMessage?: string;
-    withdrawSucessMessage?: string
-}
+import { AllBalancesProps, AllOrders, ExchangeProps, ExchangeTokenState, OrderBook, TokenProps } from "./model";
 
 export interface ExchangeTokenStore {
     state: ExchangeTokenState;
@@ -46,8 +13,8 @@ export interface ExchangeTokenStore {
     setTokenBalances: (balances: AllBalancesProps) => void;
     setDepositSucessMessage: (depositSucessMessage: string) => void;
     setWithdrawSucessMessage: (withdrawSucessMessage: string) => void;
-    setTransaction: (transaction: any) => void;
-    setRatio: (ratio: string) => void;
+    setAllOrders: (allOrders: AllOrders) => void;
+    setOrderBook: (orderBook: OrderBook) => void;
 }
 
 const useExchangeTokenStore = create<ExchangeTokenStore>()(
@@ -83,10 +50,10 @@ const useExchangeTokenStore = create<ExchangeTokenStore>()(
             set((store) => ({ state: { ...store.state, depositSucessMessage } })),
         setWithdrawSucessMessage: (withdrawSucessMessage) =>
             set((store) => ({ state: { ...store.state, withdrawSucessMessage } })),
-        setTransaction: (transaction) =>
-            set((store) => ({ state: { ...store.state, transaction } })),
-        setRatio: (ratio) =>
-            set((store) => ({ state: { ...store.state, ratio } })),
+        setAllOrders: (allOrders) =>
+            set((store) => ({ state: { ...store.state, allOrders } })),
+        setOrderBook: (orderBook) =>
+            set((store) => ({ state: { ...store.state, orderBook } })),
     }), { enabled: true })
 );
 

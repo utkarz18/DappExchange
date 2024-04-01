@@ -83,7 +83,7 @@ const main = async () => {
 
     // User 1 Makes order
     for (let i = 1; i <= 10; i++) {
-        transaction = await exchange.connect(user1).makeOrder(addressOf.METH, tokens(10 * i), addressOf.MUSDT, tokens(100 * i))
+        transaction = await exchange.connect(user1).makeOrder(addressOf.METH, tokens(10), addressOf.MUSDT, tokens(100 * i))
         result = await transaction.wait()
         console.log(`Made order from ${user1.address}`)
         await wait(0.5)
@@ -91,7 +91,7 @@ const main = async () => {
 
     // User 2 Makes order
     for (let i = 1; i <= 10; i++) {
-        transaction = await exchange.connect(user2).makeOrder(addressOf.MUSDT, tokens(100 * i), addressOf.METH, tokens(10 * i))
+        transaction = await exchange.connect(user2).makeOrder(addressOf.MUSDT, tokens(100 * i), addressOf.METH, tokens(10))
         result = await transaction.wait()
         console.log(`Made order from ${user2.address}`)
         await wait(0.5)

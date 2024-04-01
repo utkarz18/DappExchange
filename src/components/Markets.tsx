@@ -1,6 +1,6 @@
 import cfg from '../config.json';
-import { switchMarket } from '../lib';
-import useExchangeTokenStore from '../store';
+import { switchMarket } from '../lib/lib';
+import useExchangeTokenStore from '../lib/store';
 
 const Markets = () => {
     const state = useExchangeTokenStore(s => s.state);

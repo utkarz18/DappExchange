@@ -94,7 +94,7 @@ contract Exchange {
 
         orderCount++;
         orders[orderCount] = _Order(
-            1,
+            orderCount,
             msg.sender,
             _tokenGet,
             _amountGet,
@@ -148,7 +148,7 @@ contract Exchange {
     }
 
     function _trade(
-        uint _orderId,
+        uint256 _orderId,
         address _user,
         address _tokenGet,
         uint256 _amountGet,

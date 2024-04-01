@@ -1,7 +1,10 @@
 import { Contract, ethers } from "ethers";
-import EXCHAGNE_ABI from './exchange_abi.json';
+import { Order } from "./model";
+import EXCHAGNE_ABI from '../exchange_abi.json';
 import { ExchangeTokenStore } from "./store";
-import TOKEN_ABI from './token_abi.json';
+import TOKEN_ABI from '../token_abi.json';
+import { filterAsync } from "./utils";
+import moment from "moment";
 
 let store: ExchangeTokenStore;
 
@@ -135,4 +138,79 @@ export const makeOrder = async (
     } catch (error) {
         console.log(error);
     }
+}
+
+export const loadAllOrders = async (exchangeContract: any, provider?: ethers.BrowserProvider) => {
+    provider = provider || loadProvider();
+    const currentBlock = await provider?.getBlockNumber();
+    let orderEvents = await exchangeContract.queryFilter('Order', 0, currentBlock);
+    let allOrders = orderEvents.map((event: any) => {
+        return {
+            id: event.args[0].toString(),
+            signerAddress: event.args[1],
+            tokenGetAddress: event.args[2],
+            amountGet: ethers.formatEther(event.args[3]),
+            tokenGiveAddress: event.args[4],
+            amountGive: ethers.formatEther(event.args[5]),
+            timestamp: moment.unix(+(event.args[6].toString())).format('h:mm:ssa ddd MMM D'),
+        } as Order
+    });
+
+    let filledAndCancelledOrderIds: string[] = [];
+
+    orderEvents = await exchangeContract.queryFilter('Trade', 0, currentBlock);
+    const filledOrders = orderEvents.map((event: any) => {
+        const filledOrder: Order = allOrders.find((order: Order) => order.id == event.args[0].toString());
+        filledAndCancelledOrderIds.push(filledOrder.id);
+        return filledOrder;
+    });
+
+    orderEvents = await exchangeContract.queryFilter('Cancel', 0, currentBlock);
+    const cancelledOrders = orderEvents.map((event: any) => {
+        const cancelledOrder: Order = allOrders.find((order: Order) => order.id == event.args[0].toString());
+        filledAndCancelledOrderIds.push(cancelledOrder.id);
+        return cancelledOrder;
+    });
+
+    const openOrders = filledAndCancelledOrderIds.length > 0 ?
+        allOrders.filter((order: Order) => !filledAndCancelledOrderIds.includes(order.id))
+        : allOrders;
+
+    store.setAllOrders({openOrders, filledOrders, cancelledOrders});
+}
+
+export const loadOrderBook = async (
+    openOrders: Order[],
+    token1Contract: Contract,
+    token2Contract: Contract) => {
+
+    const currentMarketOrders = await filterAsync(openOrders, async (order) => (
+        (order.tokenGetAddress === await token1Contract.getAddress() &&
+            order.tokenGiveAddress === await token2Contract.getAddress()) ||
+        (order.tokenGetAddress === await token2Contract.getAddress() &&
+            order.tokenGiveAddress === await token1Contract.getAddress())
+    ));
+
+    if (currentMarketOrders.length === 0) {
+        return;
+    }
+
+    let buyOrders: Order[] = [];
+    let sellOrders: Order[] = [];
+
+    for (var order of openOrders) {
+        if (order.tokenGetAddress === await token1Contract.getAddress()) {
+            order.price = Math.round((+order.amountGive / +order.amountGet) * 100000) / 100000;
+            buyOrders.push(order);
+        }
+        else {
+            order.price = Math.round((+order.amountGet / +order.amountGive) * 100000) / 100000;
+            sellOrders.push(order);
+        }
+    }
+
+    sellOrders = sellOrders.sort((order1, order2) => order2.price - order1.price);
+    buyOrders = buyOrders.sort((order1, order2) => order2.price - order1.price);
+
+    store.setOrderBook({ buyOrders, sellOrders });
 }

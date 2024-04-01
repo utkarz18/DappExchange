@@ -2,8 +2,8 @@ import Blockies from 'react-blockies';
 import eth from '../assets/eth.svg';
 import logo from '../assets/logo.png';
 import cfg from '../config.json';
-import { connectWallet, switchNetwork } from '../lib';
-import useExchangeTokenStore from '../store';
+import { connectWallet, switchNetwork } from '../lib/lib';
+import useExchangeTokenStore from '../lib/store';
 
 const Navbar = () => {
     const state = useExchangeTokenStore(s => s.state);

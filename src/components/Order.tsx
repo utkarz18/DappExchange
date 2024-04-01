@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
-import { makeOrder } from "../lib";
-import useExchangeTokenStore from "../store";
+import { makeOrder } from "../lib/lib";
+import useExchangeTokenStore from "../lib/store";
 
 const Order = () => {
     const state = useExchangeTokenStore(s => s.state);
