@@ -1,7 +1,8 @@
 import { useEffect } from "react";
-import useExchangeTokenStore from "../lib/store";
+import sort from '../assets/sort.svg';
 import { loadMarketFilledOrders } from "../lib/lib";
-import sort from '../assets/sort.svg'
+import useExchangeTokenStore from "../lib/store";
+import Banner from "./Banner";
 
 const Trades = () => {
     const state = useExchangeTokenStore(s => s.state);
@@ -24,25 +25,28 @@ const Trades = () => {
                 <h2>Trades</h2>
             </div>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Time <img src={sort} alt="sort" /></th>
-                        <th>{token1 && token1.symbol} <img src={sort} alt="sort" /></th>
-                        <th>{token1 && token2 && `${token1.symbol}/${token2.symbol}`} <img src={sort} alt="sort" /></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {marketFilledOrders && marketFilledOrders.map((order, index) => (
-                        <tr key={index}>
-                            <td>{order.formattedTimestamp}</td>
-                            <td>{order.amountGet}</td>
-                            <td>{order.price}</td>
+            {!marketFilledOrders || marketFilledOrders.length === 0 ? (
+                <Banner text="No Trades" />
+            ) : (
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time <img src={sort} alt="sort" /></th>
+                            <th>{token1 && token1.symbol} <img src={sort} alt="sort" /></th>
+                            <th>{token1 && token2 && `${token1.symbol}/${token2.symbol}`} <img src={sort} alt="sort" /></th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
-
+                    </thead>
+                    <tbody>
+                        {marketFilledOrders && marketFilledOrders.map((order, index) => (
+                            <tr key={index}>
+                                <td>{order.formattedTimestamp}</td>
+                                <td>{order.type === 'Buy' ? order.amountGet : order.amountGive}</td>
+                                <td>{order.price}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )}
         </div>
     );
 }

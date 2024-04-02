@@ -14,8 +14,10 @@ export interface ExchangeTokenStore {
     setDepositSucessMessage: (depositSucessMessage: string) => void;
     setWithdrawSucessMessage: (withdrawSucessMessage: string) => void;
     setAllOrders: (allOrders: AllOrders) => void;
-    setOrderBook: (orderBook: OrderBook) => void;
+    setOrderBook: (orderBook: OrderBook | null) => void;
+    setMarketOpenOrders: (marketOpenOrders: Order[]) => void;
     setMarketFilledOrders: (marketFilledOrders: Order[]) => void;
+    setUserOrders: (allUserOrders: AllOrders) => void;
 }
 
 const useExchangeTokenStore = create<ExchangeTokenStore>()(
@@ -55,8 +57,12 @@ const useExchangeTokenStore = create<ExchangeTokenStore>()(
             set((store) => ({ state: { ...store.state, allOrders } })),
         setOrderBook: (orderBook) =>
             set((store) => ({ state: { ...store.state, orderBook } })),
+        setMarketOpenOrders: (marketOpenOrders) =>
+            set((store) => ({ state: { ...store.state, marketOpenOrders } })),
         setMarketFilledOrders: (marketFilledOrders) =>
             set((store) => ({ state: { ...store.state, marketFilledOrders } })),
+        setUserOrders: (allUserOrders) =>
+            set((store) => ({ state: { ...store.state, allUserOrders } })),
     }), { enabled: true })
 );
 

@@ -1,10 +1,10 @@
 import { Contract, ethers } from "ethers";
-import { Order } from "./model";
-import EXCHAGNE_ABI from '../exchange_abi.json';
-import { ExchangeTokenStore } from "./store";
-import TOKEN_ABI from '../token_abi.json';
-import { filterAsync } from "./utils";
 import moment from "moment";
+import EXCHAGNE_ABI from '../exchange_abi.json';
+import TOKEN_ABI from '../token_abi.json';
+import { AllOrders, Order } from "./model";
+import { ExchangeTokenStore } from "./store";
+import { filterAsync } from "./utils";
 
 let store: ExchangeTokenStore;
 
@@ -161,7 +161,13 @@ export const loadAllOrders = async (exchangeContract: any, provider?: ethers.Bro
 
     orderEvents = await exchangeContract.queryFilter('Trade', 0, currentBlock);
     const filledOrders = orderEvents.map((event: any) => {
-        const filledOrder: Order = allOrders.find((order: Order) => order.id == event.args[0].toString());
+        const filledOrder: Order = allOrders.find((order: Order) => {
+            if (order.id == event.args[0].toString()) {
+                order.signerAddress = event.args[1];
+                order.creator = event.args[6];
+                return order;
+            }
+        });
         filledAndCancelledOrderIds.push(filledOrder.id);
         return filledOrder;
     });
@@ -185,14 +191,12 @@ export const loadOrderBook = async (
     token1Contract: Contract,
     token2Contract: Contract) => {
 
-    const currentMarketOrders = await filterCurrentMarketOrders(openOrders, token1Contract, token2Contract);
+    const currentMarketOrders = await getCurrentMarkerOrders(openOrders, token1Contract, token2Contract);
 
     if (currentMarketOrders.length === 0) {
+        store.setMarketOpenOrders([]);
+        store.setOrderBook(null);
         return;
-    }
-
-    for (var order of currentMarketOrders) {
-        await populateOrderPriceAndType(order, token1Contract);
     }
 
     let sellOrders = currentMarketOrders.filter((order) => order.type === 'Sell');
@@ -201,6 +205,7 @@ export const loadOrderBook = async (
     sellOrders = sellOrders.sort((order1, order2) => order2.price - order1.price);
     buyOrders = buyOrders.sort((order1, order2) => order2.price - order1.price);
 
+    store.setMarketOpenOrders(currentMarketOrders);
     store.setOrderBook({ buyOrders, sellOrders });
 }
 
@@ -210,42 +215,57 @@ export const loadMarketFilledOrders = async (
     token2Contract: Contract
 ) => {
 
-    let currentMarketFilledOrders = await filterCurrentMarketOrders(filledOrders, token1Contract, token2Contract);
+    let currentMarketFilledOrders = await getCurrentMarkerOrders(filledOrders, token1Contract, token2Contract);
 
     if (currentMarketFilledOrders.length === 0) {
+        store.setMarketFilledOrders([]);
         return;
-    }
-
-    for (var order of currentMarketFilledOrders) {
-        await populateOrderPriceAndType(order, token1Contract);
     }
 
     currentMarketFilledOrders = currentMarketFilledOrders.sort((order1, order2) => +order2.timestamp - +order1.timestamp);
     store.setMarketFilledOrders(currentMarketFilledOrders);
 }
 
+export const loadUserOrders = async (
+    allMarketOrders: AllOrders,
+    account: string
+) => {
+    const userOpenOrders = allMarketOrders.openOrders?.filter((order) => order.signerAddress === account);
+    const userFilledOrders = allMarketOrders.filledOrders?.filter((order) =>
+        order.signerAddress === account || order.creator === account);
+    store.setUserOrders({
+        openOrders: userOpenOrders,
+        filledOrders: userFilledOrders
+    });
+}
 
-
-const filterCurrentMarketOrders = async (
+const getCurrentMarkerOrders = async (
     orders: Order[],
     token1Contract: Contract,
     token2Contract: Contract
 ) => {
-    return await filterAsync(orders, async (order) => (
+
+    const currentMarketOrders = await filterAsync(orders, async (order) => (
         (order.tokenGetAddress === await token1Contract.getAddress() &&
             order.tokenGiveAddress === await token2Contract.getAddress()) ||
         (order.tokenGetAddress === await token2Contract.getAddress() &&
             order.tokenGiveAddress === await token1Contract.getAddress())
     ));
-}
 
-const populateOrderPriceAndType = async (order: Order, token1Contract: Contract) => {
-    if (order.tokenGetAddress === await token1Contract.getAddress()) {
-        order.price = Math.round((+order.amountGive / +order.amountGet) * 100000) / 100000;
-        order.type = 'Buy';
+    if (currentMarketOrders.length === 0) {
+        return [];
     }
-    else {
-        order.price = Math.round((+order.amountGet / +order.amountGive) * 100000) / 100000;
-        order.type = 'Sell';
+
+    for (var order of currentMarketOrders) {
+        if (order.tokenGetAddress === await token1Contract.getAddress()) {
+            order.price = Math.round((+order.amountGive / +order.amountGet) * 100000) / 100000;
+            order.type = 'Buy';
+        }
+        else {
+            order.price = Math.round((+order.amountGet / +order.amountGive) * 100000) / 100000;
+            order.type = 'Sell';
+        }
     }
+
+    return currentMarketOrders;
 }

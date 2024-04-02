@@ -31,13 +31,14 @@ export interface Order {
     price: number;
     type: 'Buy' | 'Sell';
     timestamp: string;
+    creator: string;
     formattedTimestamp: string;
 }
 
 export interface AllOrders {
-    openOrders?: Order[];
-    filledOrders?: Order[];
-    cancelledOrders?: Order[]
+    openOrders?: Order[] | null;
+    filledOrders?: Order[] | null;
+    cancelledOrders?: Order[] | null;
 }
 
 export interface OrderBook {
@@ -57,6 +58,8 @@ export interface ExchangeTokenState {
     depositSucessMessage?: string;
     withdrawSucessMessage?: string;
     allOrders?: AllOrders;
-    orderBook?: OrderBook;
-    marketFilledOrders?: Order[]
+    orderBook?: OrderBook | null;
+    marketOpenOrders?: Order[];
+    marketFilledOrders?: Order[];
+    allUserOrders?: AllOrders;
 }
