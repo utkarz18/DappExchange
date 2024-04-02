@@ -152,7 +152,8 @@ export const loadAllOrders = async (exchangeContract: any, provider?: ethers.Bro
             amountGet: ethers.formatEther(event.args[3]),
             tokenGiveAddress: event.args[4],
             amountGive: ethers.formatEther(event.args[5]),
-            timestamp: moment.unix(+(event.args[6].toString())).format('h:mm:ssa ddd MMM D'),
+            timestamp: event.args[6].toString(),
+            formattedTimestamp: moment.unix(+(event.args[6].toString())).format('h:mm:ssa ddd MMM D'),
         } as Order
     });
 
@@ -176,7 +177,7 @@ export const loadAllOrders = async (exchangeContract: any, provider?: ethers.Bro
         allOrders.filter((order: Order) => !filledAndCancelledOrderIds.includes(order.id))
         : allOrders;
 
-    store.setAllOrders({openOrders, filledOrders, cancelledOrders});
+    store.setAllOrders({ openOrders, filledOrders, cancelledOrders });
 }
 
 export const loadOrderBook = async (
@@ -184,33 +185,67 @@ export const loadOrderBook = async (
     token1Contract: Contract,
     token2Contract: Contract) => {
 
-    const currentMarketOrders = await filterAsync(openOrders, async (order) => (
-        (order.tokenGetAddress === await token1Contract.getAddress() &&
-            order.tokenGiveAddress === await token2Contract.getAddress()) ||
-        (order.tokenGetAddress === await token2Contract.getAddress() &&
-            order.tokenGiveAddress === await token1Contract.getAddress())
-    ));
+    const currentMarketOrders = await filterCurrentMarketOrders(openOrders, token1Contract, token2Contract);
 
     if (currentMarketOrders.length === 0) {
         return;
     }
 
-    let buyOrders: Order[] = [];
-    let sellOrders: Order[] = [];
-
-    for (var order of openOrders) {
-        if (order.tokenGetAddress === await token1Contract.getAddress()) {
-            order.price = Math.round((+order.amountGive / +order.amountGet) * 100000) / 100000;
-            buyOrders.push(order);
-        }
-        else {
-            order.price = Math.round((+order.amountGet / +order.amountGive) * 100000) / 100000;
-            sellOrders.push(order);
-        }
+    for (var order of currentMarketOrders) {
+        await populateOrderPriceAndType(order, token1Contract);
     }
+
+    let sellOrders = currentMarketOrders.filter((order) => order.type === 'Sell');
+    let buyOrders = currentMarketOrders.filter((order) => order.type === 'Buy');
 
     sellOrders = sellOrders.sort((order1, order2) => order2.price - order1.price);
     buyOrders = buyOrders.sort((order1, order2) => order2.price - order1.price);
 
     store.setOrderBook({ buyOrders, sellOrders });
+}
+
+export const loadMarketFilledOrders = async (
+    filledOrders: Order[],
+    token1Contract: Contract,
+    token2Contract: Contract
+) => {
+
+    let currentMarketFilledOrders = await filterCurrentMarketOrders(filledOrders, token1Contract, token2Contract);
+
+    if (currentMarketFilledOrders.length === 0) {
+        return;
+    }
+
+    for (var order of currentMarketFilledOrders) {
+        await populateOrderPriceAndType(order, token1Contract);
+    }
+
+    currentMarketFilledOrders = currentMarketFilledOrders.sort((order1, order2) => +order2.timestamp - +order1.timestamp);
+    store.setMarketFilledOrders(currentMarketFilledOrders);
+}
+
+
+
+const filterCurrentMarketOrders = async (
+    orders: Order[],
+    token1Contract: Contract,
+    token2Contract: Contract
+) => {
+    return await filterAsync(orders, async (order) => (
+        (order.tokenGetAddress === await token1Contract.getAddress() &&
+            order.tokenGiveAddress === await token2Contract.getAddress()) ||
+        (order.tokenGetAddress === await token2Contract.getAddress() &&
+            order.tokenGiveAddress === await token1Contract.getAddress())
+    ));
+}
+
+const populateOrderPriceAndType = async (order: Order, token1Contract: Contract) => {
+    if (order.tokenGetAddress === await token1Contract.getAddress()) {
+        order.price = Math.round((+order.amountGive / +order.amountGet) * 100000) / 100000;
+        order.type = 'Buy';
+    }
+    else {
+        order.price = Math.round((+order.amountGet / +order.amountGive) * 100000) / 100000;
+        order.type = 'Sell';
+    }
 }

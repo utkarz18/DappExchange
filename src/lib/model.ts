@@ -29,7 +29,9 @@ export interface Order {
     tokenGiveAddress: string;
     amountGive: string;
     price: number;
+    type: 'Buy' | 'Sell';
     timestamp: string;
+    formattedTimestamp: string;
 }
 
 export interface AllOrders {
@@ -55,5 +57,6 @@ export interface ExchangeTokenState {
     depositSucessMessage?: string;
     withdrawSucessMessage?: string;
     allOrders?: AllOrders;
-    orderBook?: OrderBook
+    orderBook?: OrderBook;
+    marketFilledOrders?: Order[]
 }

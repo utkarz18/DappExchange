@@ -7,6 +7,8 @@ import Orderbook from './components/Orderbook';
 import config from './config.json';
 import { connectWallet, loadAllOrders, loadExchange, loadNetwork, loadProvider, loadToken1, loadToken2, setStore } from './lib/lib';
 import useExchangeTokenStore from './lib/store';
+import PriceChart from './components/PriceChart';
+import Trades from './components/Trades';
 
 
 const App = () => {
@@ -66,11 +68,11 @@ const App = () => {
         </section>
         <section className='exchange__section--right grid'>
 
-          {/* PriceChart */}
+          <PriceChart />
 
           {/* Transactions */}
 
-          {/* Trades */}
+          <Trades />
 
           <Orderbook />
 

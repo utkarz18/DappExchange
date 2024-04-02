@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { AllBalancesProps, AllOrders, ExchangeProps, ExchangeTokenState, OrderBook, TokenProps } from "./model";
+import { AllBalancesProps, AllOrders, ExchangeProps, ExchangeTokenState, Order, OrderBook, TokenProps } from "./model";
 
 export interface ExchangeTokenStore {
     state: ExchangeTokenState;
@@ -15,6 +15,7 @@ export interface ExchangeTokenStore {
     setWithdrawSucessMessage: (withdrawSucessMessage: string) => void;
     setAllOrders: (allOrders: AllOrders) => void;
     setOrderBook: (orderBook: OrderBook) => void;
+    setMarketFilledOrders: (marketFilledOrders: Order[]) => void;
 }
 
 const useExchangeTokenStore = create<ExchangeTokenStore>()(
@@ -54,6 +55,8 @@ const useExchangeTokenStore = create<ExchangeTokenStore>()(
             set((store) => ({ state: { ...store.state, allOrders } })),
         setOrderBook: (orderBook) =>
             set((store) => ({ state: { ...store.state, orderBook } })),
+        setMarketFilledOrders: (marketFilledOrders) =>
+            set((store) => ({ state: { ...store.state, marketFilledOrders } })),
     }), { enabled: true })
 );
 

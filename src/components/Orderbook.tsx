@@ -7,16 +7,16 @@ const Orderbook = () => {
     const state = useExchangeTokenStore(s => s.state);
     const token1 = state.token1;
     const token2 = state.token2;
-    const allOrders = state.allOrders;
+    const openOrders = state.allOrders?.openOrders;
     const orderbook = state.orderBook;
 
     useEffect(() => {
         (async () => {
-            if (token1 && token2 && allOrders && allOrders.openOrders) {
-                await loadOrderBook(allOrders.openOrders, token1.contract, token2.contract)
+            if (token1 && token2 && openOrders) {
+                await loadOrderBook(openOrders, token1.contract, token2.contract)
             }
         })();
-    }, [token1, token2, allOrders?.openOrders])
+    }, [token1, token2, openOrders])
 
     return (
         <div className="component exchange__orderbook">
