@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import sort from '../assets/sort.svg';
-import { loadUserOrders } from "../lib/lib";
+import { cancelOrder, loadUserOrders } from "../lib/lib";
 import useExchangeTokenStore from "../lib/store";
 import Banner from "./Banner";
 
@@ -9,6 +9,7 @@ const Transactions = () => {
     const account = state.account;
     const token1 = state.token1;
     const token2 = state.token2;
+    const exchange = state.exchange;
     const marketOpenOrders = state.marketOpenOrders;
     const marketFilledOrders = state.marketFilledOrders;
     const userOpenOrders = state.allUserOrders?.openOrders;
@@ -60,7 +61,7 @@ const Transactions = () => {
                                 <tr key={index}>
                                     <td>{order.type === 'Buy' ? order.amountGet : order.amountGive}</td>
                                     <td>{order.price}</td>
-                                    <td></td>
+                                    <td><button className="button--sm" onClick={async() => await cancelOrder(exchange?.contract, order.id)}>Cancel</button></td>
                                 </tr>
                             ))}
                         </tbody>

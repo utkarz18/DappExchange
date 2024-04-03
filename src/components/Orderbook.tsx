@@ -1,12 +1,14 @@
 import useExchangeTokenStore from "../lib/store";
 import sort from '../assets/sort.svg'
 import { useEffect } from "react";
-import { loadOrderBook } from "../lib/lib";
+import { fillOrder, loadOrderBook } from "../lib/lib";
 
 const Orderbook = () => {
     const state = useExchangeTokenStore(s => s.state);
+    const account = state.account;
     const token1 = state.token1;
     const token2 = state.token2;
+    const exchange = state.exchange;
     const openOrders = state.allOrders?.openOrders;
     const orderbook = state.orderBook;
 
@@ -39,9 +41,13 @@ const Orderbook = () => {
                         </thead>
                         <tbody>
                             {orderbook.sellOrders?.map((order, index) => (
-                                <tr key={index}>
+                                <tr key={index}
+                                    onClick={async () =>
+                                        order.signerAddress != account ?
+                                            await fillOrder(exchange?.contract, order.id) : {}}
+                                >
                                     <td>{order.amountGive}</td>
-                                    <td style={{color: "#F45353"}}>{order.price}</td>
+                                    <td style={{ color: "#F45353" }}>{order.price}</td>
                                     <td>{order.amountGet}</td>
                                 </tr>
                             ))}
@@ -65,9 +71,13 @@ const Orderbook = () => {
                         </thead>
                         <tbody>
                             {orderbook.buyOrders?.map((order, index) => (
-                                <tr key={index}>
+                                <tr key={index}
+                                    onClick={async () =>
+                                        order.signerAddress != account ?
+                                            await fillOrder(exchange?.contract, order.id) : {}}
+                                >
                                     <td>{order.amountGet}</td>
-                                    <td style={{color: "#25CE8F"}}>{order.price}</td>
+                                    <td style={{ color: "#25CE8F" }}>{order.price}</td>
                                     <td>{order.amountGive}</td>
                                 </tr>
                             ))}

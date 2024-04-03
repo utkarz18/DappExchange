@@ -55,11 +55,11 @@ export interface ExchangeTokenState {
     exchange?: ExchangeProps;
     token1Balance?: TokenBalanceProps;
     token2Balance?: TokenBalanceProps;
-    depositSucessMessage?: string;
-    withdrawSucessMessage?: string;
     allOrders?: AllOrders;
     orderBook?: OrderBook | null;
     marketOpenOrders?: Order[];
     marketFilledOrders?: Order[];
     allUserOrders?: AllOrders;
+    depositSucessMessage?: string;
+    withdrawSucessMessage?: string;
 }

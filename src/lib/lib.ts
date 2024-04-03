@@ -269,3 +269,59 @@ const getCurrentMarkerOrders = async (
 
     return currentMarketOrders;
 }
+
+export const cancelOrder = async (exchangeContract: any, orderId: string) => {
+    try {
+        const provider = loadProvider();
+        const signer = await provider.getSigner();
+        const transaction = await exchangeContract.connect(signer).cancelOrder(orderId);
+        await transaction.wait();
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export const fillOrder = async (exchangeContract: any, orderId: string) => {
+    try {
+        const provider = loadProvider();
+        const signer = await provider.getSigner();
+        const transaction = await exchangeContract.connect(signer).fillOrder(orderId);
+        await transaction.wait();
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export const subscribeToEvents = async (exchangeContract: Contract, provider: ethers.BrowserProvider) => {
+    window.ethereum.on('accountsChanged', async () => {
+        await connectWallet(provider)
+    })
+
+    window.ethereum.on('chainChanged', () => {
+        window.location.reload()
+    })
+
+    exchangeContract.on('Deposit', (token, user, amount) => {
+        const message = `${user} Deposited ${amount} ${token} to exchange`
+        store.setDepositSucessMessage(message);
+    })
+
+    exchangeContract.on('Withdraw', (token, user, amount) => {
+        const message = `${user} withdraw ${amount} ${token} from exchange`
+        store.setWithdrawSucessMessage(message);
+    })
+
+    exchangeContract.on('Cancel', async (orderId) => {
+        const message = `Order Id : ${orderId}`;
+        console.log('Order Cancelled ', message);
+        store.setAllOrders({});
+        await loadAllOrders(exchangeContract, provider);
+    })
+
+    exchangeContract.on('Trade', async (orderId) => {
+        const message = `Order Id : ${orderId}`;
+        console.log('Order Filled ', message);
+        store.setAllOrders({});
+        await loadAllOrders(exchangeContract, provider);
+    })
+}

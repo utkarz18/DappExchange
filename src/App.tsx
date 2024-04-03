@@ -5,7 +5,7 @@ import Navbar from './components/Navbar';
 import Order from './components/Order';
 import Orderbook from './components/Orderbook';
 import config from './config.json';
-import { connectWallet, loadAllOrders, loadExchange, loadNetwork, loadProvider, loadToken1, loadToken2, setStore } from './lib/lib';
+import { connectWallet, loadAllOrders, loadExchange, loadNetwork, loadProvider, loadToken1, loadToken2, setStore, subscribeToEvents } from './lib/lib';
 import useExchangeTokenStore from './lib/store';
 import PriceChart from './components/PriceChart';
 import Trades from './components/Trades';
@@ -27,30 +27,7 @@ const App = () => {
     const exchangeContract = await loadExchange(provider, addressOf.exchange);
 
     await loadAllOrders(exchangeContract, provider);
-
-    window.ethereum.on('accountsChanged', async () => {
-      await connectWallet(provider)
-    })
-
-    window.ethereum.on('chainChanged', () => {
-      window.location.reload()
-    })
-
-    exchangeContract.on('Deposit', (token, user, amount) => {
-      const message = `${user} Deposited ${amount} ${token} to exchange`
-      store.setDepositSucessMessage(message);
-    })
-
-    exchangeContract.on('Withdraw', (token, user, amount) => {
-      const message = `${user} withdraw ${amount} ${token} from exchange`
-      store.setWithdrawSucessMessage(message);
-    })
-
-    exchangeContract.on('Trade', (orderId) => {
-      const message = `Order Id : ${orderId}`
-      console.log(message);
-    })
-
+    await subscribeToEvents(exchangeContract, provider);
   }
 
   useEffect(() => {

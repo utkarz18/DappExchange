@@ -11,13 +11,13 @@ export interface ExchangeTokenStore {
     setToken2: (token2: TokenProps) => void;
     setExchange: (exchange: ExchangeProps) => void;
     setTokenBalances: (balances: AllBalancesProps) => void;
-    setDepositSucessMessage: (depositSucessMessage: string) => void;
-    setWithdrawSucessMessage: (withdrawSucessMessage: string) => void;
     setAllOrders: (allOrders: AllOrders) => void;
     setOrderBook: (orderBook: OrderBook | null) => void;
     setMarketOpenOrders: (marketOpenOrders: Order[]) => void;
     setMarketFilledOrders: (marketFilledOrders: Order[]) => void;
     setUserOrders: (allUserOrders: AllOrders) => void;
+    setDepositSucessMessage: (depositSucessMessage: string) => void;
+    setWithdrawSucessMessage: (withdrawSucessMessage: string) => void;
 }
 
 const useExchangeTokenStore = create<ExchangeTokenStore>()(
@@ -49,10 +49,6 @@ const useExchangeTokenStore = create<ExchangeTokenStore>()(
                     }
                 }
             })),
-        setDepositSucessMessage: (depositSucessMessage) =>
-            set((store) => ({ state: { ...store.state, depositSucessMessage } })),
-        setWithdrawSucessMessage: (withdrawSucessMessage) =>
-            set((store) => ({ state: { ...store.state, withdrawSucessMessage } })),
         setAllOrders: (allOrders) =>
             set((store) => ({ state: { ...store.state, allOrders } })),
         setOrderBook: (orderBook) =>
@@ -63,6 +59,10 @@ const useExchangeTokenStore = create<ExchangeTokenStore>()(
             set((store) => ({ state: { ...store.state, marketFilledOrders } })),
         setUserOrders: (allUserOrders) =>
             set((store) => ({ state: { ...store.state, allUserOrders } })),
+        setDepositSucessMessage: (depositSucessMessage) =>
+            set((store) => ({ state: { ...store.state, depositSucessMessage } })),
+        setWithdrawSucessMessage: (withdrawSucessMessage) =>
+            set((store) => ({ state: { ...store.state, withdrawSucessMessage } }))
     }), { enabled: true })
 );
 
