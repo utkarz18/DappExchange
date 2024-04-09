@@ -5,11 +5,12 @@ import Navbar from './components/Navbar';
 import Order from './components/Order';
 import Orderbook from './components/Orderbook';
 import config from './config.json';
-import { connectWallet, loadAllOrders, loadExchange, loadNetwork, loadProvider, loadToken1, loadToken2, setStore, subscribeToEvents } from './lib/lib';
+import { loadAllOrders, loadExchange, loadNetwork, loadProvider, loadToken1, loadToken2, setStore, subscribeToEvents } from './lib/lib';
 import useExchangeTokenStore from './lib/store';
 import PriceChart from './components/PriceChart';
 import Trades from './components/Trades';
 import Transactions from './components/Transactions';
+import Alert from './components/Alert';
 
 
 const App = () => {
@@ -50,9 +51,7 @@ const App = () => {
           <Orderbook />
         </section>
       </main>
-
-      {/* Alert */}
-
+      <Alert/>
     </div>
   );
 }

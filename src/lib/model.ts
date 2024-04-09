@@ -62,4 +62,8 @@ export interface ExchangeTokenState {
     allUserOrders?: AllOrders;
     depositSucessMessage?: string;
     withdrawSucessMessage?: string;
+    transactionHash?: string | null;
+    isTransactionPending?: boolean;
+    isTransactionError?: boolean;
+    isTransactionSuccessfull?: boolean;
 }

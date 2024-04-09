@@ -98,8 +98,9 @@ export const depositToExchange = async (
         let transaction = await tokenContract.connect(signer).approve(await exchangeContract.getAddress(), amountToDeposit);
         await transaction.wait();
         transaction = await exchangeContract.connect(signer).depositToken(await tokenContract.getAddress(), amountToDeposit);
-        await transaction.wait();
+        store.setIsTransactionPending(true);
     } catch (error) {
+        store.setIsTransactionError(true);
         console.log(error);
     }
 }
@@ -114,7 +115,9 @@ export const withdrawFromExchange = async (
         const signer = await provider.getSigner();
         const transaction = await exchangeContract.connect(signer).withdrawlToken(await tokenContract.getAddress(), amountToDeposit);
         await transaction.wait();
+        store.setIsTransactionPending(true);
     } catch (error) {
+        store.setIsTransactionError(true);
         console.log(error);
     }
 }
@@ -135,7 +138,9 @@ export const makeOrder = async (
             await tokenGetContract.getAddress(), amountGet,
             await tokenGiveContract.getAddress(), amountGive);
         await transaction.wait();
+        store.setIsTransactionPending(true);
     } catch (error) {
+        store.setIsTransactionError(true);
         console.log(error);
     }
 }
@@ -276,7 +281,9 @@ export const cancelOrder = async (exchangeContract: any, orderId: string) => {
         const signer = await provider.getSigner();
         const transaction = await exchangeContract.connect(signer).cancelOrder(orderId);
         await transaction.wait();
+        store.setIsTransactionPending(true);
     } catch (error) {
+        store.setIsTransactionError(true);
         console.log(error);
     }
 }
@@ -287,7 +294,9 @@ export const fillOrder = async (exchangeContract: any, orderId: string) => {
         const signer = await provider.getSigner();
         const transaction = await exchangeContract.connect(signer).fillOrder(orderId);
         await transaction.wait();
+        store.setIsTransactionPending(true);
     } catch (error) {
+        store.setIsTransactionError(true);
         console.log(error);
     }
 }
@@ -301,27 +310,40 @@ export const subscribeToEvents = async (exchangeContract: Contract, provider: et
         window.location.reload()
     })
 
-    exchangeContract.on('Deposit', (token, user, amount) => {
+    exchangeContract.on('Deposit', (token, user, amount, balance, event) => {
         const message = `${user} Deposited ${amount} ${token} to exchange`
+        store.setTransactionHash(event.log?.transactionHash);
         store.setDepositSucessMessage(message);
+        store.setIsTransactionSuccessfull(true);
     })
 
-    exchangeContract.on('Withdraw', (token, user, amount) => {
+    exchangeContract.on('Withdraw', (token, user, amount, balance, event) => {
         const message = `${user} withdraw ${amount} ${token} from exchange`
+        store.setTransactionHash(event.log?.transactionHash);
         store.setWithdrawSucessMessage(message);
+        store.setIsTransactionSuccessfull(true);
     })
 
-    exchangeContract.on('Cancel', async (orderId) => {
+    exchangeContract.on('Cancel', async (orderId, user, tokenGet, amountGet, tokenGive, amountGive, timestamp, event) => {
         const message = `Order Id : ${orderId}`;
-        console.log('Order Cancelled ', message);
+        store.setTransactionHash(event.log?.transactionHash);
+        store.setIsTransactionSuccessfull(true);
         store.setAllOrders({});
         await loadAllOrders(exchangeContract, provider);
     })
 
-    exchangeContract.on('Trade', async (orderId) => {
+    exchangeContract.on('Trade', async (orderId, user, tokenGet, amountGet, tokenGive, amountGive, creator, timestamp, event) => {
         const message = `Order Id : ${orderId}`;
-        console.log('Order Filled ', message);
+        store.setTransactionHash(event.log?.transactionHash);
+        store.setIsTransactionSuccessfull(true);
         store.setAllOrders({});
         await loadAllOrders(exchangeContract, provider);
     })
+}
+
+export const resetAlerts = () => {
+    store.setIsTransactionPending(false);
+    store.setIsTransactionError(false);
+    store.setIsTransactionSuccessfull(false);
+    store.setTransactionHash(null);
 }

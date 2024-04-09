@@ -18,6 +18,10 @@ export interface ExchangeTokenStore {
     setUserOrders: (allUserOrders: AllOrders) => void;
     setDepositSucessMessage: (depositSucessMessage: string) => void;
     setWithdrawSucessMessage: (withdrawSucessMessage: string) => void;
+    setTransactionHash: (transactionHash: string | null) => void;
+    setIsTransactionPending: (isTransactionPending: boolean) => void;
+    setIsTransactionError: (isTransactionError: boolean) => void;
+    setIsTransactionSuccessfull: (isTransactionSuccessfull: boolean) => void;
 }
 
 const useExchangeTokenStore = create<ExchangeTokenStore>()(
@@ -62,7 +66,15 @@ const useExchangeTokenStore = create<ExchangeTokenStore>()(
         setDepositSucessMessage: (depositSucessMessage) =>
             set((store) => ({ state: { ...store.state, depositSucessMessage } })),
         setWithdrawSucessMessage: (withdrawSucessMessage) =>
-            set((store) => ({ state: { ...store.state, withdrawSucessMessage } }))
+            set((store) => ({ state: { ...store.state, withdrawSucessMessage } })),
+        setTransactionHash: (transactionHash) =>
+            set((store) => ({ state: { ...store.state, transactionHash } })),
+        setIsTransactionPending: (isTransactionPending) =>
+            set((store) => ({ state: { ...store.state, isTransactionPending } })),
+        setIsTransactionError: (isTransactionError) =>
+            set((store) => ({ state: { ...store.state, isTransactionError } })),
+        setIsTransactionSuccessfull: (isTransactionSuccessfull) =>
+            set((store) => ({ state: { ...store.state, isTransactionSuccessfull } })),
     }), { enabled: true })
 );
 
